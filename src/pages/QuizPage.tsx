@@ -4,23 +4,25 @@ import emailjs from "@emailjs/browser";
 import { QUESTIONS, shuffleQuestions, Question } from "@/data/questions";
 
 // ── EmailJS credentials ─────────────────────────────────────────────────────
-// Replace these three values with your own from emailjs.com
 const EMAILJS_SERVICE_ID  = "service_eqq2x4w";
 const EMAILJS_TEMPLATE_ID = "template_vt88u8r";
 const EMAILJS_PUBLIC_KEY  = "QvCjPoCT5Zq9mpdRf";
 // ────────────────────────────────────────────────────────────────────────────
 
-const TOTAL_TIME = 20 * 60; // seconds
+const QUESTION_TIME = 60;  // 60 seconds per question
+const TOTAL_QUESTIONS = 20;
 
 const QuizPage = () => {
   const navigate = useNavigate();
   const [questions]  = useState<Question[]>(() => shuffleQuestions(QUESTIONS));
   const [current, setCurrent]   = useState(0);
-  const [answers, setAnswers]   = useState<(number | null)[]>(Array(20).fill(null));
-  const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
+  const [answers, setAnswers]   = useState<(number | null)[]>(Array(TOTAL_QUESTIONS).fill(null));
+  const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
   const [submitted, setSubmitted] = useState(false);
   const [hoverTimer, setHoverTimer] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Store answers in a ref so handleSubmit always sees the latest value
+  const answersRef = useRef<(number | null)[]>(Array(TOTAL_QUESTIONS).fill(null));
 
   const studentName  = sessionStorage.getItem("quiz_name")  || "Unknown";
   const studentEmail = sessionStorage.getItem("quiz_email") || "unknown@email.com";
@@ -32,37 +34,22 @@ const QuizPage = () => {
     }
   }, [navigate]);
 
-  // Countdown
-  useEffect(() => {
-    if (submitted) return;
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          handleSubmit(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current!);
-  }, [submitted]); // eslint-disable-line
-
   const handleSubmit = useCallback(
     async (auto = false) => {
       if (submitted) return;
       setSubmitted(true);
       clearInterval(timerRef.current!);
 
-      const score = answers.reduce((acc, ans, i) => {
+      const latestAnswers = answersRef.current;
+      const score = latestAnswers.reduce((acc, ans, i) => {
         return acc + (ans === questions[i].correct ? 1 : 0);
       }, 0);
 
       const answerDetails = questions
         .map((q, i) => {
-          const chosen = answers[i] !== null ? q.options[answers[i]!] : "NOT ANSWERED";
+          const chosen = latestAnswers[i] !== null ? q.options[latestAnswers[i]!] : "NOT ANSWERED";
           const correct = q.options[q.correct];
-          const status = answers[i] === q.correct ? "✓" : "✗";
+          const status = latestAnswers[i] === q.correct ? "✓" : "✗";
           return `Q${i + 1}. ${q.question}\n   Selected: ${chosen}\n   Correct : ${correct} ${status}`;
         })
         .join("\n\n");
@@ -71,7 +58,7 @@ const QuizPage = () => {
         student_name:  studentName,
         student_email: studentEmail,
         submitted_at:  new Date().toLocaleString(),
-        score:         `${score} / 20`,
+        score:         `${score} / ${TOTAL_QUESTIONS}`,
         auto_submit:   auto ? "YES (time expired)" : "NO (manual submit)",
         answers:       answerDetails,
       };
@@ -89,19 +76,45 @@ const QuizPage = () => {
 
       navigate("/terminated");
     },
-    [submitted, answers, questions, studentName, studentEmail, navigate]
+    [submitted, questions, studentName, studentEmail, navigate]
   );
+
+  // Per-question countdown — resets every time `current` changes
+  useEffect(() => {
+    if (submitted) return;
+    setTimeLeft(QUESTION_TIME);
+    clearInterval(timerRef.current!);
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          // Auto-advance or auto-submit on last question
+          if (current < TOTAL_QUESTIONS - 1) {
+            setCurrent((c) => c + 1);
+          } else {
+            handleSubmit(true);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerRef.current!);
+  }, [current, submitted]); // eslint-disable-line
 
   const selectAnswer = (optionIndex: number) => {
     setAnswers((prev) => {
       const next = [...prev];
       next[current] = optionIndex;
+      answersRef.current = next;
       return next;
     });
   };
 
   const goNext = () => {
-    if (current < 19) setCurrent((c) => c + 1);
+    if (current < TOTAL_QUESTIONS - 1) setCurrent((c) => c + 1);
   };
 
   const goPrev = () => {
@@ -123,59 +136,88 @@ const QuizPage = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [current, submitted]); // eslint-disable-line
 
-  const pct = (timeLeft / TOTAL_TIME) * 100;
-  const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
-  const secs = String(timeLeft % 60).padStart(2, "0");
-
-  const q = questions[current];
+  const pct = (timeLeft / QUESTION_TIME) * 100;
+  const secs = String(timeLeft).padStart(2, "0");
   const answered = answers.filter((a) => a !== null).length;
 
+  // Timer colour class
+  const timerBarClass =
+    timeLeft <= 10 ? "timer-danger" :
+    timeLeft <= 20 ? "timer-warning" : "";
+
+  const q = questions[current];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col" style={{ fontFamily: "'Roboto Mono', monospace" }}>
-      {/* ── Timer bar ── */}
+    <div
+      className="min-h-screen bg-background flex flex-col scan-overlay"
+      style={{ fontFamily: "'Share Tech Mono', monospace" }}
+    >
+      {/* ── Per-question timer bar ── */}
       <div
         className="fixed top-0 left-0 w-full z-50"
         onMouseEnter={() => setHoverTimer(true)}
         onMouseLeave={() => setHoverTimer(false)}
       >
-        {/* 1px depleting bar */}
-        <div className="h-[2px] bg-background w-full relative">
+        <div className="h-[3px] bg-muted w-full relative">
           <div
-            className="absolute left-0 top-0 h-full bg-primary transition-none"
-            style={{ width: `${pct}%` }}
+            className={`absolute left-0 top-0 h-full transition-none ${timerBarClass}`}
+            style={{
+              width: `${pct}%`,
+              background: timerBarClass ? undefined : "hsl(var(--primary))",
+              boxShadow: timerBarClass ? undefined : "0 0 8px hsl(var(--primary) / 0.5)",
+            }}
           />
         </div>
 
-        {/* Hover tooltip: time remaining */}
+        {/* Hover tooltip */}
         {hoverTimer && (
-          <div className="absolute top-2 right-4 bg-background border border-border px-3 py-1 text-xs text-primary tracking-widest">
-            {mins}:{secs} REMAINING
+          <div className="absolute top-2 right-4 bg-background border border-primary px-3 py-1 text-xs text-primary tracking-widest"
+            style={{ boxShadow: "0 0 10px hsl(var(--primary) / 0.3)" }}
+          >
+            {secs}s REMAINING
           </div>
         )}
       </div>
 
       {/* ── Main container ── */}
-      <div className="flex-1 flex flex-col max-w-[800px] mx-auto w-full px-6 pt-10 pb-8">
+      <div className="flex-1 flex flex-col max-w-[820px] mx-auto w-full px-6 pt-10 pb-8">
 
-        {/* Header row */}
-        <div className="flex items-center justify-between mb-8 pt-2">
-          <span className="text-xs text-muted-foreground tracking-widest uppercase">
-            {studentName}
-          </span>
-          <span className="text-xs text-muted-foreground tracking-widest">
-            {answered} / 20 ANSWERED
-          </span>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 pt-2">
+          <div className="flex items-center gap-3">
+            <span className="ece-badge">ECE DEPT</span>
+            <span className="text-xs text-muted-foreground tracking-widest uppercase">{studentName}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-muted-foreground tracking-widest">
+              {answered} / {TOTAL_QUESTIONS} ANSWERED
+            </span>
+            {/* Per-question countdown ring */}
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`text-sm font-bold tracking-widest tabular-nums ${
+                  timeLeft <= 10 ? "text-destructive" :
+                  timeLeft <= 20 ? "text-[hsl(var(--ece-amber))]" : "text-primary"
+                }`}
+              >
+                {secs}s
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Question counter */}
-        <div className="mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <span className="text-xs text-primary tracking-widest uppercase">
-            Q_{String(current + 1).padStart(2, "0")} / 20
+            Q_{String(current + 1).padStart(2, "0")} / {TOTAL_QUESTIONS}
+          </span>
+          <span className="text-xs text-muted-foreground tracking-widest">
+            SYMPOSIUM TECHNICAL QUIZ
           </span>
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-border mb-6" />
+        <div className="h-px bg-primary mb-6" style={{ boxShadow: "0 0 6px hsl(var(--primary) / 0.6)" }} />
 
         {/* Question text */}
         <div className="mb-8 min-h-[80px]">
@@ -217,7 +259,7 @@ const QuizPage = () => {
             ← → ARROW KEYS
           </span>
 
-          {current < 19 ? (
+          {current < TOTAL_QUESTIONS - 1 ? (
             <button
               onClick={goNext}
               className="text-xs tracking-widest uppercase border border-border px-5 py-2.5 text-foreground hover:border-primary hover:text-primary transition-colors duration-100"
@@ -228,10 +270,30 @@ const QuizPage = () => {
             <button
               onClick={() => handleSubmit(false)}
               className="text-xs tracking-widest uppercase border border-primary px-5 py-2.5 text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-100"
+              style={{ boxShadow: "0 0 10px hsl(var(--primary) / 0.3)" }}
             >
               SUBMIT ↵
             </button>
           )}
+        </div>
+
+        {/* Question dot-map progress */}
+        <div className="mt-8 flex flex-wrap gap-1.5 justify-center">
+          {Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={`w-5 h-5 text-[9px] flex items-center justify-center border transition-colors duration-100 ${
+                i === current
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : answers[i] !== null
+                  ? "border-primary/50 bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/40"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
         </div>
       </div>
     </div>

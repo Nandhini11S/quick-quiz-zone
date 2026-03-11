@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,50 +6,50 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;          /* #0A0A0A */
-    --foreground: 0 0% 96%;         /* #F5F5F5 */
+    --background: 220 30% 5%;         /* deep navy-black */
+    --foreground: 195 100% 90%;       /* cool ice-blue white */
 
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 96%;
+    --card: 220 25% 7%;
+    --card-foreground: 195 100% 90%;
 
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 220 30% 5%;
+    --popover-foreground: 195 100% 90%;
 
-    --primary: 129 100% 50%;        /* #00FF41 terminal green */
-    --primary-foreground: 0 0% 4%;
+    --primary: 195 100% 50%;          /* #00CFFF electric cyan */
+    --primary-foreground: 220 30% 5%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 96%;
+    --secondary: 220 20% 12%;
+    --secondary-foreground: 195 100% 90%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 50%;
+    --muted: 220 20% 14%;
+    --muted-foreground: 220 15% 50%;
 
-    --accent: 129 100% 50%;
-    --accent-foreground: 0 0% 4%;
+    --accent: 195 100% 50%;
+    --accent-foreground: 220 30% 5%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 96%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 129 100% 50%;
+    --border: 220 25% 18%;
+    --input: 220 25% 18%;
+    --ring: 195 100% 50%;
 
     --radius: 0rem;
 
-    /* Custom tokens */
-    --terminal-green: 129 100% 50%;
-    --terminal-green-dim: 129 100% 50% / 0.15;
-    --void: 0 0% 4%;
-    --whisper: 0 0% 96%;
+    /* ECE custom tokens */
+    --ece-cyan: 195 100% 50%;
+    --ece-amber: 38 100% 55%;         /* warning amber */
+    --ece-red: 0 84% 60%;             /* danger red */
+    --grid-line: 220 30% 10%;
 
-    --sidebar-background: 0 0% 4%;
-    --sidebar-foreground: 0 0% 96%;
-    --sidebar-primary: 129 100% 50%;
-    --sidebar-primary-foreground: 0 0% 4%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 96%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 129 100% 50%;
+    --sidebar-background: 220 30% 5%;
+    --sidebar-foreground: 195 100% 90%;
+    --sidebar-primary: 195 100% 50%;
+    --sidebar-primary-foreground: 220 30% 5%;
+    --sidebar-accent: 220 20% 12%;
+    --sidebar-accent-foreground: 195 100% 90%;
+    --sidebar-border: 220 25% 18%;
+    --sidebar-ring: 195 100% 50%;
   }
 }
 
@@ -60,20 +60,34 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Roboto Mono', 'Courier New', monospace;
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
     -webkit-font-smoothing: antialiased;
     cursor: default;
+    background-image:
+      linear-gradient(hsl(var(--grid-line)) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--grid-line)) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 
   ::selection {
-    background: hsl(129 100% 50% / 0.3);
-    color: hsl(0 0% 96%);
+    background: hsl(195 100% 50% / 0.3);
+    color: hsl(195 100% 95%);
   }
 
   /* Blinking cursor animation */
   @keyframes blink {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0; }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 4px hsl(var(--primary) / 0.4); }
+    50%       { box-shadow: 0 0 12px hsl(var(--primary) / 0.8); }
+  }
+
+  @keyframes scan-line {
+    0%   { top: -2px; }
+    100% { top: 100%; }
   }
 
   .cursor-blink::after {
@@ -84,6 +98,22 @@
     font-size: 0.9em;
   }
 
+  /* Scan-line overlay */
+  .scan-overlay {
+    position: relative;
+    overflow: hidden;
+  }
+  .scan-overlay::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: hsl(var(--primary) / 0.08);
+    animation: scan-line 4s linear infinite;
+    pointer-events: none;
+  }
+
   /* Terminal input style */
   .terminal-input {
     background: transparent;
@@ -91,7 +121,7 @@
     border-bottom: 1px solid hsl(var(--border));
     border-radius: 0;
     color: hsl(var(--foreground));
-    font-family: 'Roboto Mono', monospace;
+    font-family: 'Share Tech Mono', monospace;
     outline: none;
     padding: 0.5rem 0;
     width: 100%;
@@ -103,13 +133,7 @@
   }
 
   .terminal-input::placeholder {
-    color: hsl(0 0% 30%);
-  }
-
-  /* Timer bar */
-  @keyframes deplete {
-    from { width: 100%; }
-    to { width: 0%; }
+    color: hsl(220 15% 30%);
   }
 
   /* Option hover/selected */
@@ -118,7 +142,8 @@
     cursor: pointer;
     padding: 1rem 1.25rem;
     transition: border-color 0.1s ease, background 0.1s ease;
-    font-family: 'Roboto Mono', monospace;
+    font-family: 'Share Tech Mono', monospace;
+    position: relative;
   }
 
   .quiz-option:hover {
@@ -130,15 +155,35 @@
     border-color: hsl(var(--primary));
     background: hsl(var(--primary) / 0.08);
     color: hsl(var(--primary));
+    animation: pulse-glow 2s ease-in-out infinite;
   }
 
-  .quiz-option.correct {
-    border-color: hsl(var(--primary));
-    background: hsl(var(--primary) / 0.12);
+  /* Per-question timer bar countdown */
+  @keyframes timer-countdown {
+    from { width: 100%; }
+    to   { width: 0%; }
   }
 
-  .quiz-option.incorrect {
-    border-color: hsl(var(--destructive));
-    background: hsl(var(--destructive) / 0.08);
+  /* Amber warning when < 20s */
+  .timer-warning {
+    background: hsl(var(--ece-amber)) !important;
+    box-shadow: 0 0 8px hsl(var(--ece-amber) / 0.6);
+  }
+
+  /* Red danger when < 10s */
+  .timer-danger {
+    background: hsl(var(--ece-red)) !important;
+    box-shadow: 0 0 8px hsl(var(--ece-red) / 0.6);
+  }
+
+  /* ECE label badge */
+  .ece-badge {
+    border: 1px solid hsl(var(--primary) / 0.4);
+    background: hsl(var(--primary) / 0.06);
+    color: hsl(var(--primary));
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    padding: 0.15rem 0.5rem;
+    text-transform: uppercase;
   }
 }
