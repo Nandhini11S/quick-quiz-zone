@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        mono: ["'Roboto Mono'", "'Courier New'", "monospace"],
+        mono: ["'Share Tech Mono'", "'Courier New'", "monospace"],
+        display: ["'Rajdhani'", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -50,10 +51,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        terminal: {
-          green: "hsl(var(--primary))",
-          void: "hsl(var(--void))",
-          whisper: "hsl(var(--whisper))",
+        ece: {
+          cyan: "hsl(var(--ece-cyan))",
+          amber: "hsl(var(--ece-amber))",
+          red: "hsl(var(--ece-red))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
