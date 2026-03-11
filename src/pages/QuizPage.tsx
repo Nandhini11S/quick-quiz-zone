@@ -5,8 +5,8 @@ import { QUESTIONS, shuffleQuestions, Question } from "@/data/questions";
 
 // ── EmailJS credentials ─────────────────────────────────────────────────────
 // Replace these three values with your own from emailjs.com
-const EMAILJS_SERVICE_ID  = "YOUR_SERVICE_ID";
-const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";
+const EMAILJS_SERVICE_ID  = "service_eqq2x4w";
+const EMAILJS_TEMPLATE_ID = "template_vt88u8r";
 const EMAILJS_PUBLIC_KEY  = "YOUR_PUBLIC_KEY";
 // ────────────────────────────────────────────────────────────────────────────
 
