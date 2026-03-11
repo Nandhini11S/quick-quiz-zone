@@ -7,7 +7,7 @@ import { QUESTIONS, shuffleQuestions, Question } from "@/data/questions";
 // Replace these three values with your own from emailjs.com
 const EMAILJS_SERVICE_ID  = "service_eqq2x4w";
 const EMAILJS_TEMPLATE_ID = "template_vt88u8r";
-const EMAILJS_PUBLIC_KEY  = "YOUR_PUBLIC_KEY";
+const EMAILJS_PUBLIC_KEY  = "QvCjPoCT5Zq9mpdRf";
 // ────────────────────────────────────────────────────────────────────────────
 
 const TOTAL_TIME = 20 * 60; // seconds
