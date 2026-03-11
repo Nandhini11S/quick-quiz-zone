@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        mono: ["'Roboto Mono'", "'Courier New'", "monospace"],
+        mono: ["'Share Tech Mono'", "'Courier New'", "monospace"],
+        display: ["'Rajdhani'", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
