@@ -3,6 +3,7 @@ export interface Question {
   question: string;
   options: string[];
   correct: number;
+  subject?: string;
 }
 
 export const QUESTIONS: Question[] = [
