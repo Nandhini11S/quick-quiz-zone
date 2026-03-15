@@ -39,19 +39,40 @@ const QuizPage = () => {
   const [hoverTimer, setHoverTimer] = useState(false);
   const timerRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const answersRef  = useRef<(number | null)[]>(Array(TOTAL_QUESTIONS).fill(null));
+  const submittingRef = useRef(false);
 
   const studentName  = sessionStorage.getItem("quiz_name")  || "Unknown";
   const studentEmail = sessionStorage.getItem("quiz_email") || "unknown@email.com";
 
+  // ── Guard: already participated ──────────────────────────────────────────
   useEffect(() => {
-    if (!sessionStorage.getItem("quiz_name")) navigate("/");
-  }, [navigate]);
+    if (!sessionStorage.getItem("quiz_name")) { navigate("/"); return; }
+    const key = `quiz_submitted_${studentEmail}`;
+    if (localStorage.getItem(key) === "true") {
+      navigate("/terminated?reason=already");
+    }
+  }, [navigate, studentEmail]);
+
+  // ── Guard: tab-switch / app-switch → auto-submit immediately ─────────────
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.hidden && !submittingRef.current) {
+        handleSubmit(true);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []); // eslint-disable-line
 
   const handleSubmit = useCallback(
     async (auto = false) => {
-      if (submitted) return;
+      if (submittingRef.current || submitted) return;
+      submittingRef.current = true;
       setSubmitted(true);
       clearInterval(timerRef.current!);
+
+      const key = `quiz_submitted_${studentEmail}`;
+      localStorage.setItem(key, "true");
 
       const latestAnswers = answersRef.current;
       const score = latestAnswers.reduce((acc, ans, i) =>
@@ -72,7 +93,7 @@ const QuizPage = () => {
           student_email: studentEmail,
           submitted_at:  new Date().toLocaleString(),
           score:         `${score} / ${TOTAL_QUESTIONS}`,
-          auto_submit:   auto ? "YES (time expired)" : "NO (manual submit)",
+          auto_submit:   auto ? "YES (time expired / tab switch)" : "NO (manual submit)",
           answers:       answerDetails,
         }, EMAILJS_PUBLIC_KEY);
       } catch (err) {
