@@ -196,7 +196,7 @@ const LoginPage = () => {
             </div>
             <h1 className="ece-gradient-text text-2xl sm:text-3xl font-bold tracking-wider mb-1"
               style={{ fontFamily: "'Orbitron', sans-serif" }}>
-              TECHNICAL QUIZ
+              Mind Blitz
             </h1>
             <p className="text-muted-foreground text-xs tracking-widest">
               ELECTRONICS & COMMUNICATION ENGINEERING
