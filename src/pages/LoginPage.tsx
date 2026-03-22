@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 
 /* ── Signal wave + circuit pulse background ── */
 const AnimatedBg = () => (
+  
   <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+    
     {/* gradient base */}
     <div className="absolute inset-0" style={{
       background: "linear-gradient(135deg, hsl(220 40% 96%) 0%, hsl(270 35% 94%) 45%, hsl(175 40% 93%) 100%)"
@@ -14,7 +16,7 @@ const AnimatedBg = () => (
       <defs>
         {/* glow filters */}
         <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feGaussianBlur stdDeviation="1.2" result="blur"/>
           <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
         <filter id="glow-purple" x="-50%" y="-50%" width="200%" height="200%">
@@ -34,7 +36,7 @@ const AnimatedBg = () => (
       <path d="M-200,120 C-150,80 -100,160 -50,120 C0,80 50,160 100,120 C150,80 200,160 250,120 C300,80 350,160 400,120 C450,80 500,160 550,120 C600,80 650,160 700,120 C750,80 800,160 850,120 C900,80 950,160 1000,120 C1050,80 1100,160 1150,120 C1200,80 1250,160 1300,120"
         fill="none" stroke="hsl(220 90% 52%)" strokeWidth="2" strokeOpacity="0.25" filter="url(#glow-blue)">
         <animateTransform attributeName="transform" type="translate" from="-300,0" to="300,0"
-          dur="5s" repeatCount="indefinite"/>
+          dur="12s" repeatCount="indefinite"/>
       </path>
       {/* bright pulse dot on sine wave 1 */}
       <circle r="5" fill="hsl(220 90% 52%)" opacity="0.9" filter="url(#glow-blue)">
@@ -138,7 +140,9 @@ const AnimatedBg = () => (
     <div className="absolute inset-0" style={{
       background: "radial-gradient(ellipse at center, transparent 50%, hsl(220 30% 90% / 0.4) 100%)"
     }}/>
+    {/* <div className="absolute inset-0 backdrop-blur-[2px]" /> */}
   </div>
+  
 );
 
 const LoginPage = () => {
@@ -174,12 +178,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 relative">
+    <div className="min-h-screen flex items-center justify-center px-3 sm:px-6 py-6 sm:py-10 relative">
       <AnimatedBg />
 
-      <div className="w-full max-w-md float-in relative" style={{ zIndex: 1 }}>
+      <div className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto float-in relative" style={{ zIndex: 1 }}>
         {/* Header card */}
-        <div className="ece-card p-6 sm:p-8 mb-6"
+        <div className="ece-card p-4 sm:p-6 md:p-8 mb-4 sm:mb-6"
           style={{ backdropFilter: "blur(16px)", background: "hsl(0 0% 100% / 0.88)" }}>
           {/* Top accent bar */}
           <div className="h-1 w-full rounded-full mb-6"
@@ -194,7 +198,7 @@ const LoginPage = () => {
                 SYMPOSIUM
               </span>
             </div>
-            <h1 className="ece-gradient-text text-2xl sm:text-3xl font-bold tracking-wider mb-1"
+            <h1 className="ece-gradient-text text-xl sm:text-2xl font-bold tracking-wider  md:text-3xl mb-1"
               style={{ fontFamily: "'Orbitron', sans-serif" }}>
               Mind Blitz
             </h1>
@@ -204,7 +208,7 @@ const LoginPage = () => {
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3 mb-8">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6 sm:mb-8">
             {[
               { label: "QUESTIONS", value: "20", color: "var(--ece-blue)" },
               { label: "MINUTES",   value: "20", color: "var(--ece-purple)" },
